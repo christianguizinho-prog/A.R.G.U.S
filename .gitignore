@@ -1,0 +1,102 @@
+# Ignorar arquivos e pastas desnecessários para controle de versão
+
+# Ambiente Virtual
+venv/
+ENV/
+env/
+.venv
+
+# Pyenv
+.python-version
+
+# Cache Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDE e Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.project
+.pydevproject
+
+# Testes
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs
+*.log
+logs/
+
+# Banco de dados (para não sincronizar histórico)
+database/logs.db
+*.db
+
+# Capturas de webcam
+assets/*.jpg
+assets/*.png
+!assets/logo.png
+!assets/background.png
+
+# Relatórios
+reports/
+*.pdf
+*.xlsx
+
+# Ambiente local
+.env
+.env.local
+config.local.py
+
+# Misc
+.tmp/
+temp/
+*.tmp
+Thumbs.db
+
+# NodeModules (se usar com Node)
+node_modules/
+
+# Secrets
+secrets.json
+.credentials
+api_keys.txt
+
+# Sistema operacional
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# Virtual environments
+venv/
+ENV/
+env/
+
+# IDE específicos
+*.sublime-project
+*.sublime-workspace
