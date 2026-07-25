@@ -345,7 +345,7 @@ bash install.sh && python3 main.py
 
 ### Opção 1: Ansioso (5 min)
 ```bash
-python main.py
+n
 ```
 
 ### Opção 2: Seguro (10 min)

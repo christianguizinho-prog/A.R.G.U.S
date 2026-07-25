@@ -1,158 +1,111 @@
-"""
-Monitoramento de rede - A.R.G.U.S.
-"""
+﻿"""Monitoramento de rede com cache para não bloquear a interface."""
+
+import socket
+import threading
+import time
+from datetime import datetime
 
 import requests
-import threading
-import socket
 from speedtest import Speedtest
-from datetime import datetime
 
 
 class NetworkMonitor:
+    CACHE_SECONDS = 300
+
     def __init__(self):
-        self.public_ip = "Buscando..."
+        self.public_ip = "Offline"
         self.city = "---"
         self.country = "---"
         self.latitude = 0
         self.longitude = 0
-        self.internet_down = 0  # Mbps
-        self.internet_up = 0    # Mbps
+        self.internet_down = 0
+        self.internet_up = 0
         self.is_online = False
         self.last_speed_test = None
+        self._last_refresh = 0.0
+        self._lock = threading.Lock()
 
-    def get_public_ip(self):
-        """Obtém o IP público do usuário"""
+    def check_internet(self) -> bool:
         try:
-            response = requests.get('https://api.ipify.org', timeout=5)
-            self.public_ip = response.text.strip()
-            return self.public_ip
-        except Exception as e:
-            print(f"Erro ao obter IP público: {e}")
-            return "Offline"
-
-    def get_location(self):
-        """Obtém localização aproximada baseada no IP"""
-        if not self.is_online or self.public_ip in ("Offline", "Erro", ""):
-            return {
-                'city': self.city,
-                'country': self.country,
-                'latitude': self.latitude,
-                'longitude': self.longitude
-            }
-
-        try:
-            response = requests.get(f'https://ipapi.co/{self.public_ip}/json/', timeout=5)
-            data = response.json()
-            
-            self.city = data.get('city', '---')
-            self.country = data.get('country_name', '---')
-            self.latitude = data.get('latitude', 0)
-            self.longitude = data.get('longitude', 0)
-            
-            return {
-                'city': self.city,
-                'country': self.country,
-                'latitude': self.latitude,
-                'longitude': self.longitude
-            }
-        except Exception as e:
-            print(f"Erro ao obter localização: {e}")
-            self.city = self.city or '---'
-            self.country = self.country or '---'
-            self.latitude = self.latitude or 0
-            self.longitude = self.longitude or 0
-            return {
-                'city': self.city,
-                'country': self.country,
-                'latitude': self.latitude,
-                'longitude': self.longitude
-            }
-
-    def check_internet(self):
-        """Verifica se há conexão com a internet"""
-        try:
-            requests.get('https://www.google.com', timeout=2)
+            requests.get("https://www.google.com/generate_204", timeout=2).raise_for_status()
             self.is_online = True
-            return True
-        except Exception as e:
-            print(f"Erro ao verificar internet: {e}")
+        except requests.RequestException:
             self.is_online = False
-            return False
+        return self.is_online
+
+    def get_public_ip(self) -> str:
+        if not self.is_online:
+            return "Offline"
+        try:
+            response = requests.get("https://api.ipify.org", timeout=3)
+            response.raise_for_status()
+            self.public_ip = response.text.strip()
+        except requests.RequestException:
+            self.public_ip = "Offline"
+        return self.public_ip
+
+    def get_location(self) -> dict:
+        if not self.is_online or self.public_ip == "Offline":
+            return self._location_dict()
+        try:
+            response = requests.get(f"https://ipapi.co/{self.public_ip}/json/", timeout=3)
+            response.raise_for_status()
+            data = response.json()
+            self.city = data.get("city") or "---"
+            self.country = data.get("country_name") or "---"
+            self.latitude = data.get("latitude") or 0
+            self.longitude = data.get("longitude") or 0
+        except (requests.RequestException, ValueError):
+            pass
+        return self._location_dict()
+
+    def _location_dict(self) -> dict:
+        return {"city": self.city, "country": self.country, "latitude": self.latitude, "longitude": self.longitude}
 
     def test_speed(self):
-        """
-        Testa a velocidade da internet
-        (Este teste pode levar de 1 a 5 minutos)
-        Executar em thread separada!
-        """
         try:
             st = Speedtest()
             st.get_best_server()
-            
-            down = st.download() / 1_000_000  # Converter para Mbps
-            up = st.upload() / 1_000_000      # Converter para Mbps
-            
-            self.internet_down = round(down, 2)
-            self.internet_up = round(up, 2)
+            self.internet_down = round(st.download() / 1_000_000, 2)
+            self.internet_up = round(st.upload() / 1_000_000, 2)
             self.last_speed_test = datetime.now()
-            
-            return {
-                'download': self.internet_down,
-                'upload': self.internet_up,
-                'timestamp': self.last_speed_test
-            }
-        except Exception as e:
-            print(f"Erro ao testar velocidade: {e}")
+            return {"download": self.internet_down, "upload": self.internet_up, "timestamp": self.last_speed_test.isoformat()}
+        except Exception:
             return None
 
     def test_speed_async(self, callback=None):
-        """Testa velocidade em thread separada"""
         def run_test():
             result = self.test_speed()
             if callback:
                 callback(result)
-        
-        thread = threading.Thread(target=run_test, daemon=True)
-        thread.start()
+        threading.Thread(target=run_test, daemon=True).start()
 
-    def get_hostname(self):
-        """Obtém o nome do computador"""
-        try:
-            return socket.gethostname()
-        except Exception as e:
-            print(f"Erro ao obter hostname: {e}")
-            return "Desconhecido"
+    def get_hostname(self) -> str:
+        return socket.gethostname()
 
-    def get_mac_address(self):
-        """Obtém o endereço MAC"""
-        try:
-            import uuid
-            mac = uuid.UUID(int=uuid.getnode()).hex[-12:]
-            return ':'.join(mac[i:i+2] for i in range(0, 12, 2)).upper()
-        except Exception as e:
-            print(f"Erro ao obter MAC: {e}")
-            return "Desconhecido"
+    def get_mac_address(self) -> str:
+        import uuid
+        mac = uuid.UUID(int=uuid.getnode()).hex[-12:]
+        return ":".join(mac[i:i + 2] for i in range(0, 12, 2)).upper()
 
-    def get_all_network_info(self):
-        """Retorna todas as informações de rede"""
-        self.get_public_ip()
-        self.get_location()
-        self.check_internet()
-        
-        return {
-            'public_ip': self.public_ip,
-            'city': self.city,
-            'country': self.country,
-            'latitude': self.latitude,
-            'longitude': self.longitude,
-            'is_online': self.is_online,
-            'download_speed': self.internet_down,
-            'upload_speed': self.internet_up,
-            'hostname': self.get_hostname(),
-            'mac_address': self.get_mac_address()
-        }
+    def get_all_network_info(self, force_refresh: bool = False) -> dict:
+        """Retorna dados cacheados; serviços externos rodam no máximo a cada 5 min."""
+        with self._lock:
+            now = time.monotonic()
+            if force_refresh or now - self._last_refresh >= self.CACHE_SECONDS:
+                self.check_internet()
+                self.get_public_ip()
+                self.get_location()
+                self._last_refresh = now
+            return {
+                "public_ip": self.public_ip,
+                **self._location_dict(),
+                "is_online": self.is_online,
+                "download_speed": self.internet_down,
+                "upload_speed": self.internet_up,
+                "hostname": self.get_hostname(),
+                "mac_address": self.get_mac_address(),
+            }
 
 
-# Instância global
 network = NetworkMonitor()

@@ -100,3 +100,10 @@ env/
 # IDE especÃ­ficos
 *.sublime-project
 *.sublime-workspace
+
+# Configurações e credenciais locais do A.R.G.U.S.
+database/*.json
+database/api_token.txt
+database/backups/
+database/cloud_backup/
+assets/reports/

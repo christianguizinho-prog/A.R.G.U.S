@@ -1,0 +1,6 @@
+﻿{
+  "name": "Plugin de exemplo",
+  "version": "1.0.0",
+  "api_version": "1.0",
+  "description": "Demonstra a API de plugins do A.R.G.U.S."
+}

@@ -14,6 +14,15 @@
 - [x] Threading para operações não-bloqueantes
 - [x] Sistema de alertas configurável
 - [x] Suporte a webcam (módulo opcional)
+- [x] Sistema de login básico com autenticação por senha
+- [x] Notificações desktop
+- [x] Suporte a português/inglês
+- [x] Modo fullscreen e melhorias de interface
+- [x] API REST básica
+- [x] Exportação para PDF/Excel
+- [x] Reconhecimento de voz básico
+- [x] Automação de limpeza e backup
+- [x] Sistema de plugins simples
 
 ## Melhorias Sugeridas para v3.1+ 🚀
 
@@ -250,19 +259,19 @@ def get_history():
 ## Checklist para Próximas Versões
 
 ### v3.1
-- [ ] Sistema de login
-- [ ] Notificações desktop
+- [ ] Sistema de login e autenticação
+- [ ] Notificações desktop e sonoras
 - [ ] Suporte a português/inglês
 - [ ] Modo fullscreen melhorado
 
 ### v3.5
 - [ ] API REST básica
 - [ ] Dashboard web simples
-- [ ] Exportação para PDF
+- [ ] Exportação para PDF/Excel
 - [ ] Reconhecimento de voz básico
 
 ### v4.0
-- [ ] Plugin system completo
+- [ ] Sistema de plugins completo
 - [ ] Machine Learning para previsões
 - [ ] Sincronização em nuvem
 - [ ] Aplicativo mobile companion
@@ -294,6 +303,6 @@ Para adicionar novas funcionalidades:
 
 ---
 
-**Última atualização**: 2024
-**Versão**: 3.0
-**Status**: Desenvolvimento ativo
+**Última atualização**: 2026-07-06
+**Versão**: 3.1
+**Status**: Planejamento e desenvolvimento ativo

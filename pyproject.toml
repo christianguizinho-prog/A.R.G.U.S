@@ -1,0 +1,9 @@
+[project]
+name = "argus-monitor"
+version = "3.1.0"
+description = "Monitoramento local de sistema"
+requires-python = ">=3.8"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
